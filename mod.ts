@@ -1,4 +1,4 @@
-const _workers: { [hash: number]: Worker } = {};
+const _workers: { [i: number]: Worker } = {};
 
 type AsyncFunction<S extends any[], T> = (...args: S) => Promise<T>;
 type MaybeAsyncFunction<S extends any[], T> = (...args: S) => T | Promise<T>;
@@ -12,7 +12,7 @@ function djb2(chars: string): number {
 }
 
 export default function parry<S extends any[], T>(
-    original: MaybeAsyncFunction<S, T>
+    original: MaybeAsyncFunction<S, T>, workerId?: number
 ): AsyncFunction<S, T> {
     let id = 0;
     let promises: {
@@ -41,8 +41,10 @@ export default function parry<S extends any[], T>(
     const script = `const _f=${original.toString()};onmessage=function(e){const{type,id,data}=e.data;switch(type){case "close":self.close();break;case "call":Promise.resolve(data).then(v=>_f.apply(_f,v)).then(r=>postMessage({type:"resolve",id:id,data:r}),e=>postMessage({type:"reject",id:id,data:e}));break;default:throw "Unknown message type"}};`;
 
     let worker = new Worker(URL.createObjectURL(new Blob([script], { type: "text/javascript" })));
-    if (!_workers[djb2(original.toString())]) _workers[djb2(original.toString())] = worker;
-    else throw "Cannot create duplicates without closing the previous first";
+
+    workerId = workerId ? workerId : djb2(original.toString());
+    if (!_workers[workerId]) _workers[workerId] = worker;
+    else throw `Cannot create duplicates without closing the previous first (worker with id ${workerId} alredy exists)`;
 
     worker.onmessage = e => {
         const { type, id, data } = e.data;
@@ -90,10 +92,10 @@ export function close<S extends any[], T>(
         _workers[djb2(target.toString())].postMessage({ type: "close" });
         delete _workers[djb2(target.toString())];
     } else {
-        for (const hash in _workers) {
-            const worker = _workers[hash];
+        for (const i in _workers) {
+            const worker = _workers[i];
             worker.postMessage({ type: "close" });
-            delete _workers[hash];
+            delete _workers[i];
         }
     }
 }
