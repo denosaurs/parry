@@ -7,24 +7,26 @@ export default function parry<S extends any[], T>(
     let id = 0;
     let promises: { [id: number]: [(value?: T | PromiseLike<T>) => void, (reason?: any) => void] } = {};
 
-    const script =
-        `const _f = ${original.toString()};` +
-        `\nonmessage = function (e) {` +
-        `\n    const { type, id, data } = e.data;` +
-        `\n    switch(type) {` +
-        `\n        case "close":` +
-        `\n            self.close();` +
-        `\n            break;` +
-        `\n        case "call":` +
-        `\n            Promise.resolve(data).then(v => _f.apply(_f, v)).then(` +
-        `\n                r => postMessage({ type: "resolve", id: id, data: r }),` +
-        `\n                e => postMessage({ type: "reject", id: id, data: e })` +
-        `\n            );` +
-        `\n            break;` +
-        `\n        default:` +
-        `\n            throw "Unknown message type";` +
-        `\n    }` +
-        `\n};`;
+    /* WebWorker function wrapper
+    const _f = ${original.toString()};
+    onmessage = function (e) {
+        const { type, id, data } = e.data;
+        switch(type) {
+            case "close":
+                self.close();
+                break;
+            case "call":
+                Promise.resolve(data).then(v => _f.apply(_f, v)).then(
+                    r => postMessage({ type: "resolve", id: id, data: r }),
+                    e => postMessage({ type: "reject", id: id, data: e })
+                );
+                break;
+            default:
+                throw "Unknown message type";
+        }
+    };
+     */
+    const script = `const _f=${original.toString()};onmessage=function(e){const{type,id,data}=e.data;switch(type){case "close":self.close();break;case "call":Promise.resolve(data).then(v=>_f.apply(_f,v)).then(r=>postMessage({type:"resolve",id:id,data:r}),e=>postMessage({type:"reject",id:id,data:e}));break;default:throw "Unknown message type"}};`;
 
     let worker = new Worker(URL.createObjectURL(new Blob([script], { type: "text/javascript" })));
 
