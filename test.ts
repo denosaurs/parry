@@ -1,7 +1,7 @@
 import { test } from "https://deno.land/x/std/testing/mod.ts";
 import { assert, assertEquals } from "https://deno.land/std/testing/asserts.ts";
 
-import parry from "./mod.ts";
+import parry, { close } from "./mod.ts";
 
 test(function returnsAsyncFunctionFromSyncFunction() {
     const f = parry(() => { return; });
@@ -23,6 +23,8 @@ test(async function returnsPromise() {
 
     assert(r instanceof Promise);
     assertEquals(await r, 1);
+
+    close(f);
 });
 
 
@@ -31,6 +33,8 @@ test(async function invokesSyncFunction() {
     const r = await f(1);
 
     assertEquals(r, 1);
+
+    close(f);
 });
 
 test(async function invokesAsyncFunction() {
@@ -38,6 +42,8 @@ test(async function invokesAsyncFunction() {
     const r = await f(1);
 
     assertEquals(r, 1);
+
+    close(f);
 });
 
 test(async function forwardsArguments() {
@@ -45,6 +51,8 @@ test(async function forwardsArguments() {
     const r = await f(1, 2, 3, 4, 5, 6);
 
     assertEquals(r, [1, 2, 3, 4, 5, 6]);
+
+    close(f);
 });
 
 test(async function multipleWorksInParallel() {
@@ -61,6 +69,8 @@ test(async function multipleWorksInParallel() {
     assertEquals(r1, [1, 2, 3, 4, 5, 6]);
     assertEquals(r2, [6, 1, 2, 3, 4, 5]);
     assertEquals(r3, [5, 6, 1, 2, 3, 4]);
+    
+    close([f1, f2, f3]);
 });
 
 test(async function invokesMultipleTimes() {
@@ -73,4 +83,6 @@ test(async function invokesMultipleTimes() {
     assertEquals(r1, [1, 2, 3, 4, 5, 6]);
     assertEquals(r2, [6, 1, 2, 3, 4, 5]);
     assertEquals(r3, [5, 6, 1, 2, 3, 4]);
+
+    close(f);
 });
