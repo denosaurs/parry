@@ -1,20 +1,28 @@
 import { test } from "https://deno.land/x/std/testing/mod.ts";
 import { assert, assertEquals } from "https://deno.land/std/testing/asserts.ts";
 
-import parry, { close } from "./mod.ts";
+import parry from "./mod.ts";
 
-test(function returnsAsyncFunctionFromSyncFunction() {
+test(async function returnsAsyncFunctionFromSyncFunction() {
     const f = parry(() => { return; });
+    const r = f();
 
     assertEquals(typeof f, "function");
-    assert(f() instanceof Promise);
+    assert(r instanceof Promise);
+
+    await r;
+    f.close();
 });
 
-test(function returnsAsyncFunctionFromAsyncFunction() {
+test(async function returnsAsyncFunctionFromAsyncFunction() {
     const f = parry(async () => { return; });
+    const r = f();
 
     assertEquals(typeof f, "function");
-    assert(f() instanceof Promise);
+    assert(r instanceof Promise);
+
+    await r;
+    f.close();
 });
 
 test(async function returnsPromise() {
@@ -24,7 +32,7 @@ test(async function returnsPromise() {
     assert(r instanceof Promise);
     assertEquals(await r, 1);
 
-    close(f);
+    f.close();
 });
 
 
@@ -34,7 +42,7 @@ test(async function invokesSyncFunction() {
 
     assertEquals(r, 1);
 
-    close(f);
+    f.close();
 });
 
 test(async function invokesAsyncFunction() {
@@ -43,7 +51,7 @@ test(async function invokesAsyncFunction() {
 
     assertEquals(r, 1);
 
-    close(f);
+    f.close();
 });
 
 test(async function forwardsArguments() {
@@ -52,7 +60,7 @@ test(async function forwardsArguments() {
 
     assertEquals(r, [1, 2, 3, 4, 5, 6]);
 
-    close(f);
+    f.close();
 });
 
 test(async function multipleWorksInParallel() {
@@ -70,7 +78,9 @@ test(async function multipleWorksInParallel() {
     assertEquals(r2, [6, 1, 2, 3, 4, 5]);
     assertEquals(r3, [5, 6, 1, 2, 3, 4]);
     
-    close([f1, f2, f3]);
+    f1.close();
+    f2.close();
+    f3.close();
 });
 
 test(async function invokesMultipleTimes() {
@@ -84,5 +94,5 @@ test(async function invokesMultipleTimes() {
     assertEquals(r2, [6, 1, 2, 3, 4, 5]);
     assertEquals(r3, [5, 6, 1, 2, 3, 4]);
 
-    close(f);
+    f.close();
 });

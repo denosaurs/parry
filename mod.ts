@@ -1,50 +1,41 @@
-const _workers: { [i: number]: Worker } = {};
+const _createWorkerScript = <S extends any[], T>(script: MaybeAsyncFunction<S, T>) => `
+const _f=${script.toString()};
+onmessage = function(e) {
+    const { type, id, data } = e.data;
+    switch (type) {
+        case "close":
+            close();
+            break;
+        case "call":
+            Promise.resolve(data)
+                .then(v => _f.apply(null, v))
+                .then(
+                    r => postMessage({ type: "resolve", id: id, data: r }),
+                    e => postMessage({ type: "reject", id: id, data: e })
+                );
+            break;
+        default:
+            throw "Unknown message type";
+    }
+};`;
 
 type AsyncFunction<S extends any[], T> = (...args: S) => Promise<T>;
 type MaybeAsyncFunction<S extends any[], T> = (...args: S) => T | Promise<T>;
 
-function djb2(chars: string): number {
-    let hash = 5381;
-    for (let i = 0; i < chars.length; i++)
-        hash = ((hash << 5) + hash) + chars.charCodeAt(i);
-
-    return hash;
+interface ParryFunction<S extends any[], T> extends AsyncFunction<S, T> {
+    close: () => void;
 }
 
 export default function parry<S extends any[], T>(
-    original: MaybeAsyncFunction<S, T>, workerId?: number
-): AsyncFunction<S, T> {
+    original: MaybeAsyncFunction<S, T>
+): ParryFunction<S, T> {
     let id = 0;
     let promises: {
         [id: number]: [(value?: T | PromiseLike<T>) => void, (reason?: any) => void];
     } = {};
 
-    /* WebWorker function wrapper
-    const _f = ${original.toString()};
-    onmessage = function (e) {
-        const { type, id, data } = e.data;
-        switch(type) {
-            case "close":
-                self.close();
-                break;
-            case "call":
-                Promise.resolve(data).then(v => _f.apply(_f, v)).then(
-                    r => postMessage({ type: "resolve", id: id, data: r }),
-                    e => postMessage({ type: "reject", id: id, data: e })
-                );
-                break;
-            default:
-                throw "Unknown message type";
-        }
-    };
-     */
-    const script = `const _f=${original.toString()};onmessage=function(e){const{type,id,data}=e.data;switch(type){case "close":self.close();break;case "call":Promise.resolve(data).then(v=>_f.apply(_f,v)).then(r=>postMessage({type:"resolve",id:id,data:r}),e=>postMessage({type:"reject",id:id,data:e}));break;default:throw "Unknown message type"}};`;
-
-    let worker = new Worker(URL.createObjectURL(new Blob([script], { type: "text/javascript" })));
-
-    workerId = workerId ? workerId : djb2(original.toString());
-    if (!_workers[workerId]) _workers[workerId] = worker;
-    else throw `Cannot create duplicates without closing the previous first (worker with id ${workerId} alredy exists)`;
+    const script = _createWorkerScript(original);
+    const worker = new Worker(URL.createObjectURL(new Blob([script], { type: "text/javascript" })));
 
     worker.onmessage = e => {
         const { type, id, data } = e.data;
@@ -57,45 +48,28 @@ export default function parry<S extends any[], T>(
                 promises[id][1](data);
                 break;
             default:
-                throw "Unknown message type";
+                throw `Unknown message type ${type}`;
         }
 
         delete promises[id];
     };
 
-    const call = (id: number, ...args: S) => {
-        worker.postMessage({
-            type: "call",
-            id: id,
-            data: args
-        });
-    };
-
-    return (...args: S): Promise<T> => {
+    const call: ParryFunction<S, T> = (...args: S[]): Promise<T> => {
         return new Promise((resolve, reject) => {
             promises[id] = [resolve, reject];
-            call(id, ...args);
+            worker.postMessage({
+                type: "call",
+                id: id,
+                data: args
+            });
 
             id++;
         });
     };
-}
 
-export function close<S extends any[], T>(
-    target?: MaybeAsyncFunction<S, T> | MaybeAsyncFunction<S, T>[]
-): void {
-    if (target && target instanceof Array) {
-        for (const t of target) {
-            close(t);
-        }
-    } else if (target && _workers[djb2(target.toString())]) {
-        _workers[djb2(target.toString())].postMessage({ type: "close" });
-        delete _workers[djb2(target.toString())];
-    } else {
-        for (const i in _workers) {
-            const worker = _workers[i];
-            worker.postMessage({ type: "close" });
-            delete _workers[i];
-        }
+    call.close = (): void => {        
+        worker.postMessage({ type: "close" });
     }
+
+    return call;
 }
