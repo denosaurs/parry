@@ -1,3 +1,5 @@
+import { dirname, join } from "https://deno.land/std/path/mod.ts";
+
 class ParryError extends Error {
   constructor(message: string = "") {
     super(message);
@@ -37,7 +39,7 @@ export function parry<S extends any[], T>(
     ];
   } = {};
 
-  const worker = new Worker("./worker.js", { type: "module" });
+  const worker = new Worker(join(dirname(import.meta.url), "worker.js"), { type: "module" });
 
   worker.onmessage = (event) => {
     const { type, id, data } = event.data;
