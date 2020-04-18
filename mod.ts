@@ -9,16 +9,23 @@ class ParryError extends Error {
 type AsyncFunction<S extends any[], T> = (...args: S) => Promise<T>;
 type MaybeAsyncFunction<S extends any[], T> = (...args: S) => T | Promise<T>;
 
+/** A callable function in it's own Worker */
 interface ParryFunction<S extends any[], T> extends AsyncFunction<S, T> {
+  /** The id of the functions Worker */
   id: number;
+  /** Is the Worker closed? */
   closed: boolean;
+  /** Closes the current worker */
   close: () => void;
+  /** Sets the current Workers function */
   set: (f: MaybeAsyncFunction<S, T>) => void;
 }
 
+// All of the current parry functions
 const funcs: Map<number, ParryFunction<any, any>> = new Map();
 let funcsIndex: number = 0;
 
+/** Move a function into it's own Worker */
 export function parry<S extends any[], T>(
   original: (...args: S) => T | Promise<T>,
 ): ParryFunction<S, T> {
@@ -43,7 +50,7 @@ export function parry<S extends any[], T>(
         promises[id][1](data);
         break;
       default:
-        throw `Unknown message type ${type}`;
+        throw new ParryError(`Unknown message type "${type}"`);
     }
 
     delete promises[id];

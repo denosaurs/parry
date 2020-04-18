@@ -1,11 +1,11 @@
 # parry
 
-A simple way of running functions in their own WebWorker that works with
+A simple way of running functions in their own Worker that works with
 [deno](https://deno.land/).
 
 ## Usage
 
-The following function will run in it's own WebWorker, enabling threading and
+The following function will run in it's own Worker, enabling threading and
 therefor not blocking the main event loop. This becomes very useful for
 parallelization of certain computations or just a way of running a function and
 not blocking the main event loop while it runs.
@@ -45,8 +45,8 @@ console.timeEnd("4x CountParallel");
 parry.close();
 ```
 
-The parallelized version is 4x faster than the serial version of the count
-function:
+The parallelized version is as expected 4x faster than the serial version of the
+count function:
 
 ```
 4x CountSerial: 1885ms
