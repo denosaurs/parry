@@ -1,12 +1,12 @@
 on: push
 name: Test
 jobs:
-  testAll:
-    name: test all
+  test:
+    name: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
       - uses: denolib/setup-deno@master
         with:
-          deno-version: 0.39.0
-      - run: deno test -A test.ts
+          deno-version: 0.41.0
+      - run: deno test -A

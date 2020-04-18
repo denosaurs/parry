@@ -19,11 +19,6 @@ export function parry<S extends any[], T>(
 
   const worker = new Worker("./worker.js", { type: "module" });
 
-  worker.postMessage({
-    type: "set",
-    data: original.toString(),
-  });
-
   worker.onmessage = (event) => {
     const { type, id, data } = event.data;
 
@@ -46,8 +41,8 @@ export function parry<S extends any[], T>(
       promises[id] = [resolve, reject];
       worker.postMessage({
         type: "call",
-        id,
         data: args,
+        id,
       });
 
       id++;
@@ -64,6 +59,8 @@ export function parry<S extends any[], T>(
       data: f.toString(),
     });
   };
+
+  call.set(original);
 
   return call;
 }
