@@ -10,7 +10,7 @@ type AsyncFunction<S extends any[], T> = (...args: S) => Promise<T>;
 type MaybeAsyncFunction<S extends any[], T> = (...args: S) => T | Promise<T>;
 
 /** A callable function in it's own Worker */
-interface ParryFunction<S extends any[], T> extends AsyncFunction<S, T> {
+export interface ParryFunction<S extends any[], T> extends AsyncFunction<S, T> {
   /** The id of the functions Worker */
   id: number;
   /** Is the Worker closed? */
