@@ -48,7 +48,9 @@ export interface ParryFunction<S extends Transferable[], T extends Transferable>
     ...params: U
   ) => Promise<V>;
   /** Declares a global variable to specified value */
-  declare: (ident: string, value: any) => void;
+  declare: (ident: string, value: Transferable) => void;
+  /** Adds a global function with the specified identifier */
+  use: (ident: string, func: Function) => void;
 }
 
 // All of the current parry functions
@@ -167,6 +169,16 @@ export function parry<S extends Transferable[], T extends Transferable>(
       data: {
         ident,
         value,
+      },
+    });
+  };
+
+  func.use = (ident: string, func: Function) => {
+    worker.postMessage({
+      type: "use",
+      data: {
+        ident,
+        func: func.toString(),
       },
     });
   };

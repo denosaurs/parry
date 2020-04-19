@@ -153,3 +153,18 @@ test(async function declaresValue() {
 
   p.close();
 });
+
+test(async function useFunction() {
+  const p = parry((x) => x);
+
+  p.use("add", (a: number, b: number): number => a + b);
+
+  const r = await p.run((async () => {
+    // @ts-ignore
+    return add(1, 1);
+  }));
+
+  assertEquals(r, 2);
+
+  p.close();
+});

@@ -51,6 +51,9 @@ onmessage = function (event) {
     case "declare":
       self[data.ident] = data.value;
       break;
+    case "use":
+      self[data.ident] = new Function(`return ${data.func};`)();
+      break;
     default:
       throw "Unknown message type";
   }
