@@ -49,7 +49,7 @@ onmessage = function (event) {
         );
       break;
     case "declare":
-      window[data.ident] = data.value;
+      self[data.ident] = data.value;
       break;
     default:
       throw "Unknown message type";

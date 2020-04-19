@@ -138,3 +138,18 @@ test(async function runsAsyncFunction() {
 
   p.close();
 });
+
+test(async function declaresValue() {
+  const p = parry((x) => x);
+
+  p.declare("value", 1);
+
+  const r = await p.run((async () => {
+    // @ts-ignore
+    return value;
+  }));
+
+  assertEquals(r, 1);
+
+  p.close();
+});
