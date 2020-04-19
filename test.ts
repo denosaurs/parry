@@ -42,7 +42,7 @@ test(async function returnsPromise() {
   f.close();
 });
 
-test(async function invokesSyncFunction() {
+test(async function callsSyncFunction() {
   const f = parry((a) => {
     return a;
   });
@@ -53,7 +53,7 @@ test(async function invokesSyncFunction() {
   f.close();
 });
 
-test(async function invokesAsyncFunction() {
+test(async function callsAsyncFunction() {
   const f = parry(async (a) => {
     return a;
   });
@@ -101,7 +101,7 @@ test(async function multipleWorksInParallel() {
   f3.close();
 });
 
-test(async function invokesMultipleTimes() {
+test(async function callsMultipleTimes() {
   const f = parry((a, b, c, d, e, f) => {
     return [a, b, c, d, e, f];
   });
@@ -115,4 +115,26 @@ test(async function invokesMultipleTimes() {
   assertEquals(r3, [5, 6, 1, 2, 3, 4]);
 
   f.close();
+});
+
+test(async function runsSyncFunction() {
+  const p = parry((x) => x);
+
+  const r = await p.run(((x: number): number => x + 1), 1);
+
+  assertEquals(r, 2);
+
+  p.close();
+});
+
+test(async function runsAsyncFunction() {
+  const p = parry((x) => x);
+
+  const r = await p.run((async (x: number) => {
+    return x + 1;
+  }), 1);
+
+  assertEquals(r, 2);
+
+  p.close();
 });

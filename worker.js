@@ -27,6 +27,30 @@ onmessage = function (event) {
             }),
         );
       break;
+    case "run":
+      const r = new Function(`return ${data.func};`)();
+
+      Promise.resolve(data.params)
+        .then((v) => r.apply(null, v))
+        .then(
+          (resolved) => {
+            self.postMessage({
+              type: "resolve",
+              id: id,
+              data: resolved,
+            });
+          },
+          (rejected) =>
+            self.postMessage({
+              type: "reject",
+              id: id,
+              data: rejected,
+            }),
+        );
+      break;
+    case "declare":
+      window[data.ident] = data.value;
+      break;
     default:
       throw "Unknown message type";
   }
