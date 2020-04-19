@@ -65,6 +65,10 @@ export function parry<S extends any[], T>(
     throw new ParryError("Worker error");
   };
 
+  worker.onmessageerror = () => {
+    throw new ParryError("Worker message error");
+  };
+
   const func: ParryFunction<S, T> = (...args: S[]): Promise<T> => {
     if (func.closed) {
       throw new ParryError("Cannot run closed Worker");
