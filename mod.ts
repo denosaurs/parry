@@ -4,7 +4,7 @@ type AsyncFunction<S extends any[], T> = (...params: S) => Promise<T>;
 type MaybeAsyncFunction<S extends any[], T> = (...params: S) => T | Promise<T>;
 
 // Objects that can be transfered without problem between 
-type Transferable =
+export type Transferable =
   | number
   | string
   | boolean
@@ -25,7 +25,8 @@ type Transferable =
   | void // Not technically transferable but important for void functions
   | Transferable[];
 
-class ParryError extends Error {
+  /** An error thrown by a parry function or Worker */
+export class ParryError extends Error {
   constructor(message: string = "") {
     super(message);
     this.name = this.constructor.name;
@@ -87,6 +88,9 @@ export function parry<S extends Transferable[], T extends Transferable>(
       case "reject":
         promises[id][1](data);
         delete promises[id];
+        break;
+      case "error":
+        throw new ParryError(data);
         break;
       default:
         throw new ParryError(`Unknown message type "${type}"`);

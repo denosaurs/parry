@@ -16,13 +16,13 @@ onmessage = function (event) {
           (resolved) =>
             self.postMessage({
               type: "resolve",
-              id: id,
+              id,
               data: resolved,
             }),
           (rejected) =>
             self.postMessage({
               type: "reject",
-              id: id,
+              id,
               data: rejected,
             }),
         );
@@ -36,14 +36,14 @@ onmessage = function (event) {
           (resolved) => {
             self.postMessage({
               type: "resolve",
-              id: id,
+              id,
               data: resolved,
             });
           },
           (rejected) =>
             self.postMessage({
               type: "reject",
-              id: id,
+              id,
               data: rejected,
             }),
         );
@@ -55,6 +55,10 @@ onmessage = function (event) {
       self[data.ident] = new Function(`return ${data.func};`)();
       break;
     default:
-      throw "Unknown message type";
+      self.postMessage({
+        type: "error",
+        data: "Unknown message type"
+      });
+      break;
   }
 };
