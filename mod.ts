@@ -39,7 +39,10 @@ export function parry<S extends any[], T>(
     ];
   } = {};
 
-  const worker = new Worker(join(dirname(import.meta.url), "worker.js"), { type: "module" });
+  const worker = new Worker(
+    join(dirname(import.meta.url), "worker.js"),
+    { type: "module" },
+  );
 
   worker.onmessage = (event) => {
     const { type, id, data } = event.data;
@@ -58,9 +61,13 @@ export function parry<S extends any[], T>(
     delete promises[id];
   };
 
+  worker.onerror = () => {
+    throw new ParryError("Worker error");
+  };
+
   const func: ParryFunction<S, T> = (...args: S[]): Promise<T> => {
     if (func.closed) {
-      throw new ParryError("Cannot run closed WebWorker");
+      throw new ParryError("Cannot run closed Worker");
     }
 
     return new Promise((resolve, reject) => {
@@ -80,7 +87,7 @@ export function parry<S extends any[], T>(
 
   func.close = (): void => {
     if (func.closed) {
-      throw new ParryError("Cannot close already closed WebWorker");
+      throw new ParryError("Cannot close already closed Worker");
     }
 
     worker.postMessage({ type: "close" });
@@ -90,7 +97,7 @@ export function parry<S extends any[], T>(
 
   func.set = (f: MaybeAsyncFunction<S, T>): void => {
     if (func.closed) {
-      throw new ParryError("Cannot set closed WebWorker");
+      throw new ParryError("Cannot set closed Worker");
     }
 
     worker.postMessage({
