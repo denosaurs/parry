@@ -1,9 +1,9 @@
-import { dirname, join } from "https://deno.land/std/path/mod.ts";
+import { dirname, join } from "https://deno.land/std@v0.42.0/path/mod.ts";
 
 type AsyncFunction<S extends any[], T> = (...params: S) => Promise<T>;
 type MaybeAsyncFunction<S extends any[], T> = (...params: S) => T | Promise<T>;
 
-// Objects that can be transfered without problem between 
+// Objects that can be transfered without problem between
 export type Transferable =
   | number
   | string
@@ -25,7 +25,7 @@ export type Transferable =
   | void // Not technically transferable but important for void functions
   | Transferable[];
 
-  /** An error thrown by a parry function or Worker */
+/** An error thrown by a parry function or Worker */
 export class ParryError extends Error {
   constructor(message: string = "") {
     super(message);
@@ -63,6 +63,7 @@ let funcsIndex: number = 0;
 /** Move a function into it's own Worker */
 export function parry<S extends Transferable[], T extends Transferable>(
   original?: (...params: S) => T | Promise<T>,
+  deno?: boolean,
 ): ParryFunction<S, T> {
   let id = 0;
   const promises: {
@@ -74,7 +75,7 @@ export function parry<S extends Transferable[], T extends Transferable>(
 
   const worker = new Worker(
     join(dirname(import.meta.url), "worker.js"), // Allows the Worker to be run both locally and imported from an URL
-    { type: "module" },
+    { type: "module", deno },
   );
 
   worker.onmessage = (event) => {

@@ -57,7 +57,7 @@ onmessage = function (event) {
     default:
       self.postMessage({
         type: "error",
-        data: "Unknown message type"
+        data: "Unknown message type",
       });
       break;
   }
