@@ -34,6 +34,18 @@ export class ParryError extends Error {
   }
 }
 
+/** The global parry instance and ParryFunction spawner */
+export interface Parry {
+  <S extends Transferable[], T extends Transferable>(
+    /** Creates a new ParryFunction function */
+    original?: (...params: S) => T | Promise<T>,
+    deno?: boolean,
+  ): ParryFunction<S, T>;
+
+  /** Closes all parry Workers */
+  close(): void;
+}
+
 /** A callable function in it's own Worker */
 export interface ParryFunction<S extends Transferable[], T extends Transferable>
   extends AsyncFunction<S, T> {
@@ -41,7 +53,7 @@ export interface ParryFunction<S extends Transferable[], T extends Transferable>
   id: number;
   /** Is the Worker closed? */
   closed: boolean;
-  /** Closes the current worker */
+  /** Closes the current Worker */
   close: () => void;
   /** Sets the current Workers function */
   set: (f: MaybeAsyncFunction<S, T>) => void;
@@ -61,10 +73,10 @@ const funcs: Map<number, ParryFunction<any, any>> = new Map();
 let funcsIndex: number = 0;
 
 /** Move a function into it's own Worker */
-export function parry<S extends Transferable[], T extends Transferable>(
+export const parry: Parry = <S extends Transferable[], T extends Transferable>(
   original?: (...params: S) => T | Promise<T>,
   deno?: boolean,
-): ParryFunction<S, T> {
+): ParryFunction<S, T> => {
   let id = 0;
   const promises: {
     [id: number]: [
@@ -134,7 +146,7 @@ export function parry<S extends Transferable[], T extends Transferable>(
       throw new ParryError("Cannot close already closed Worker");
     }
 
-    worker.postMessage({ type: "close" });
+    worker.terminate();
     func.closed = true;
     funcs.delete(func.id);
   };
@@ -206,7 +218,7 @@ export function parry<S extends Transferable[], T extends Transferable>(
   funcs.set(func.id, func);
 
   return func;
-}
+};
 
 /** Closes all Workers */
 parry.close = (): void => {

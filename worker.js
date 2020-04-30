@@ -6,9 +6,6 @@ onmessage = function (event) {
     case "set":
       f = new Function(`return ${data};`)();
       break;
-    case "close":
-      self.close();
-      break;
     case "call":
       Promise.resolve(data)
         .then((v) => f.apply(null, v))
