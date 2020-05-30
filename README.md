@@ -1,5 +1,9 @@
 # parry
 
+---
+> ⚠️ This project is a working project. Expect breaking changes.
+---
+
 A simple way of running functions in their own Worker that works with
 [deno](https://deno.land/).
 
