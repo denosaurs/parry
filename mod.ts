@@ -1,4 +1,4 @@
-import { dirname, join } from "https://deno.land/std@v0.42.0/path/mod.ts";
+import { dirname, join } from "https://deno.land/std@0.54.0/path/mod.ts";
 
 type AsyncFunction<S extends any[], T> = (...params: S) => Promise<T>;
 type MaybeAsyncFunction<S extends any[], T> = (...params: S) => T | Promise<T>;
@@ -111,8 +111,8 @@ export const parry: Parry = <S extends Transferable[], T extends Transferable>(
   };
 
   // Throw errors when they are encountered in the worker (only works for certain error though)
-  worker.onerror = () => {
-    throw new ParryError("Worker error");
+  worker.onerror = (e) => {
+    throw new ParryError(e.message);
   };
 
   worker.onmessageerror = () => {
