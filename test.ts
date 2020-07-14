@@ -1,7 +1,7 @@
 import {
   assert,
   assertEquals,
-} from "https://deno.land/std@0.54.0/testing/asserts.ts";
+} from "https://deno.land/std@0.61.0/testing/asserts.ts";
 
 import { parry } from "./mod.ts";
 
@@ -186,6 +186,7 @@ test({
 
     const r = await p.run(
       (async () => {
+        // deno-lint-ignore ban-ts-comment
         // @ts-ignore
         return value;
       }),
@@ -206,6 +207,7 @@ test({
 
     const r = await p.run(
       (async () => {
+        // deno-lint-ignore ban-ts-comment
         // @ts-ignore
         return add(1, 1);
       }),

@@ -1,12 +1,24 @@
-on: push
-name: Test
+name: ci
+
+on: [push, pull_request]
+
 jobs:
   test:
-    name: test
-    runs-on: ubuntu-latest
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        os: [macOS-latest, windows-latest, ubuntu-latest]
     steps:
       - uses: actions/checkout@master
       - uses: denolib/setup-deno@master
         with:
-          deno-version: 1.0.2
-      - run: deno test --allow-read
+          deno-version: 1.2.0
+
+      - run: deno -V
+      
+      - if: matrix.os == 'ubuntu-latest'
+        run: deno fmt --check
+
+      - run: deno test test.ts
