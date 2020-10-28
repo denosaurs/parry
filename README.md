@@ -1,5 +1,10 @@
 # parry
 
+[![Tags](https://img.shields.io/github/release/denosaurs/parry)](https://github.com/denosaurs/parry/releases)
+[![CI Status](https://img.shields.io/github/workflow/status/denosaurs/parry/check)](https://github.com/denosaurs/parry/actions)
+[![Dependencies](https://img.shields.io/github/workflow/status/denosaurs/parry/depsbot?label=dependencies)](https://github.com/denosaurs/depsbot)
+[![License](https://img.shields.io/github/license/denosaurs/parry)](https://github.com/denosaurs/parry/blob/master/LICENSE)
+
 ---
 > ⚠️ This project is a working project. Expect breaking changes.
 ---
