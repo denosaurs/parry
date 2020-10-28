@@ -1,24 +1,35 @@
-name: ci
+name: check
 
 on: [push, pull_request]
 
 jobs:
-  test:
-    name: ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 5
-    strategy:
-      matrix:
-        os: [macOS-latest, windows-latest, ubuntu-latest]
+  lint:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
-      - uses: denolib/setup-deno@master
-        with:
-          deno-version: 1.2.0
+      - name: Checkout sources
+        uses: actions/checkout@v2
 
-      - run: deno -V
-      
-      - if: matrix.os == 'ubuntu-latest'
+      - name: Setup latest deno version
+        uses: denolib/setup-deno@v2
+        with:
+          deno-version: v1.x
+
+      - name: Run deno fmt
         run: deno fmt --check
 
-      - run: deno test test.ts
+      - name: Run deno lint
+        run: deno lint --unstable
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Setup latest deno version
+        uses: denolib/setup-deno@v2
+        with:
+          deno-version: v1.x
+
+      - name: Run deno test
+        run: deno test -A --unstable
