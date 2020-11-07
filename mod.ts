@@ -1,31 +1,10 @@
-import { dirname, join } from "https://deno.land/std@0.75.0/path/mod.ts";
+import { dirname, join } from "https://deno.land/std@0.76.0/path/mod.ts";
 
-type AsyncFunction<S extends any[], T> = (...params: S) => Promise<T>;
-type MaybeAsyncFunction<S extends any[], T> = (...params: S) => T | Promise<T>;
+type AsyncFunction<S extends unknown[], T> = (...params: S) => Promise<T>;
+type MaybeAsyncFunction<S extends unknown[], T> = (
+  ...params: S
+) => T | Promise<T>;/** An error thrown by a parry function or Worker */
 
-// Objects that can be transfered without problem between
-export type Transferable =
-  | number
-  | string
-  | boolean
-  | null
-  | undefined
-  | Date
-  | Number
-  | Boolean
-  | String
-  | Date
-  | RegExp
-  | Blob
-  | File
-  | ArrayBuffer
-  | ArrayBufferView
-  | Map<unknown, unknown>
-  | Set<unknown>
-  | void // Not technically transferable but important for void functions
-  | Transferable[];
-
-/** An error thrown by a parry function or Worker */
 export class ParryError extends Error {
   constructor(message: string = "") {
     super(message);
@@ -36,7 +15,7 @@ export class ParryError extends Error {
 
 /** The global parry instance and ParryFunction spawner */
 export interface Parry {
-  <S extends Transferable[], T extends Transferable>(
+  <S extends unknown[], T extends unknown>(
     /** Creates a new ParryFunction function */
     original?: (...params: S) => T | Promise<T>,
     deno?: boolean,
@@ -47,7 +26,7 @@ export interface Parry {
 }
 
 /** A callable function in it's own Worker */
-export interface ParryFunction<S extends Transferable[], T extends Transferable>
+export interface ParryFunction<S extends unknown[], T extends unknown>
   extends AsyncFunction<S, T> {
   /** The id of the functions Worker */
   id: number;
@@ -58,12 +37,12 @@ export interface ParryFunction<S extends Transferable[], T extends Transferable>
   /** Sets the current Workers function */
   set: (f: MaybeAsyncFunction<S, T>) => void;
   /** Runs a single function inside the Worker */
-  run: <U extends Transferable[], V extends Transferable>(
+  run: <U extends unknown[], V extends unknown>(
     f: MaybeAsyncFunction<U, V>,
     ...params: U
   ) => Promise<V>;
   /** Declares a global variable to specified value */
-  declare: (ident: string, value: Transferable) => void;
+  declare: (ident: string, value: unknown) => void;
   /** Adds a global function with the specified identifier */
   use: (ident: string, func: Function) => void;
 }
@@ -73,7 +52,7 @@ const funcs: Map<number, ParryFunction<any, any>> = new Map();
 let funcsIndex: number = 0;
 
 /** Move a function into it's own Worker */
-export const parry: Parry = <S extends Transferable[], T extends Transferable>(
+export const parry: Parry = <S extends unknown[], T extends unknown>(
   original?: (...params: S) => T | Promise<T>,
   deno?: boolean,
 ): ParryFunction<S, T> => {
@@ -164,7 +143,7 @@ export const parry: Parry = <S extends Transferable[], T extends Transferable>(
   };
 
   // A method for running a function in the parry Worker
-  func.run = <U extends Transferable[], V extends Transferable>(
+  func.run = <U extends unknown[], V extends unknown>(
     f: MaybeAsyncFunction<U, V>,
     ...params: U
   ): Promise<V> => {
@@ -188,7 +167,7 @@ export const parry: Parry = <S extends Transferable[], T extends Transferable>(
   };
 
   // Declares a global variable
-  func.declare = (ident: string, value: Transferable) => {
+  func.declare = (ident: string, value: unknown) => {
     worker.postMessage({
       type: "declare",
       data: {
