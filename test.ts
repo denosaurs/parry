@@ -1,7 +1,7 @@
 import {
   assert,
   assertEquals,
-} from "https://deno.land/std@0.76.0/testing/asserts.ts";
+} from "https://deno.land/std@0.79.0/testing/asserts.ts";
 
 import { parry } from "./mod.ts";
 
