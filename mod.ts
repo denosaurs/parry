@@ -1,10 +1,31 @@
-import { dirname, join } from "https://deno.land/std@0.79.0/path/mod.ts";
+import { dirname, join } from "https://deno.land/std@0.84.0/path/mod.ts";
 
 type AsyncFunction<S extends unknown[], T> = (...params: S) => Promise<T>;
 type MaybeAsyncFunction<S extends unknown[], T> = (
   ...params: S
-) => T | Promise<T>;/** An error thrown by a parry function or Worker */
+) => T | Promise<T>;
+type DenoWorkerOptions = true | {
+  namespace?: boolean;
+  /** Set to `"none"` to disable all the permissions in the worker. */
+  permissions?: "inherit" | "none" | {
+    env?: "inherit" | boolean;
+    hrtime?: "inherit" | boolean;
+    /** The format of the net access list must be `hostname[:port]`
+     * in order to be resolved.
+     *
+     * ```
+     * net: ["https://deno.land", "localhost:8080"],
+     * ```
+     * */
+    net?: "inherit" | boolean | string[];
+    plugin?: "inherit" | boolean;
+    read?: "inherit" | boolean | Array<string | URL>;
+    run?: "inherit" | boolean;
+    write?: "inherit" | boolean | Array<string | URL>;
+  };
+};
 
+/** An error thrown by a parry function or Worker */
 export class ParryError extends Error {
   constructor(message: string = "") {
     super(message);
@@ -18,7 +39,7 @@ export interface Parry {
   <S extends unknown[], T extends unknown>(
     /** Creates a new ParryFunction function */
     original?: (...params: S) => T | Promise<T>,
-    deno?: boolean,
+    deno?: DenoWorkerOptions,
   ): ParryFunction<S, T>;
 
   /** Closes all parry Workers */
@@ -44,7 +65,7 @@ export interface ParryFunction<S extends unknown[], T extends unknown>
   /** Declares a global variable to specified value */
   declare: (ident: string, value: unknown) => void;
   /** Adds a global function with the specified identifier */
-  use: (ident: string, func: Function) => void;
+  define: (ident: string, func: Function) => void;
 }
 
 // All of the current parry functions
@@ -54,7 +75,7 @@ let funcsIndex: number = 0;
 /** Move a function into it's own Worker */
 export const parry: Parry = <S extends unknown[], T extends unknown>(
   original?: (...params: S) => T | Promise<T>,
-  deno?: boolean,
+  deno?: DenoWorkerOptions,
 ): ParryFunction<S, T> => {
   let id = 0;
   const promises: {
@@ -177,10 +198,10 @@ export const parry: Parry = <S extends unknown[], T extends unknown>(
     });
   };
 
-  // Declares a global function
-  func.use = (ident: string, func: Function) => {
+  // Defines a global function
+  func.define = (ident: string, func: Function) => {
     worker.postMessage({
-      type: "use",
+      type: "define",
       data: {
         ident,
         func: func.toString(),
@@ -189,7 +210,7 @@ export const parry: Parry = <S extends unknown[], T extends unknown>(
   };
 
   // Sets the Workers main function if specified
-  if (original) {
+  if (original !== undefined) {
     func.set(original);
   }
 

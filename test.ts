@@ -8,7 +8,7 @@ import { parry } from "./mod.ts";
 const { test } = Deno;
 
 test({
-  name: "returnsAsyncFunctionFromSyncFunction",
+  name: "returns async function from sync function",
   async fn(): Promise<void> {
     const f = parry(() => {
       return;
@@ -25,7 +25,7 @@ test({
 
 test(
   {
-    name: "returnsAsyncFunctionFromAsyncFunction",
+    name: "returns async function from async function",
     async fn(): Promise<void> {
       const f = parry(async () => {
         return;
@@ -42,7 +42,7 @@ test(
 );
 
 test({
-  name: "returnsPromise",
+  name: "returns promise",
   async fn(): Promise<void> {
     const f = parry((a) => {
       return a;
@@ -57,7 +57,7 @@ test({
 });
 
 test({
-  name: "callsSyncFunction",
+  name: "calls sync function",
   async fn(): Promise<void> {
     const f = parry((a) => {
       return a;
@@ -71,7 +71,7 @@ test({
 });
 
 test({
-  name: "callsAsyncFunction",
+  name: "calls async function",
   async fn(): Promise<void> {
     const f = parry(async (a) => {
       return a;
@@ -85,7 +85,7 @@ test({
 });
 
 test({
-  name: "forwardsArguments",
+  name: "forwards arguments",
   async fn(): Promise<void> {
     const f = parry((a, b, c, d, e, f) => {
       return [a, b, c, d, e, f];
@@ -99,7 +99,7 @@ test({
 });
 
 test({
-  name: "multipleWorksInParallel",
+  name: "multiple works in parallel",
   async fn(): Promise<void> {
     const f1 = parry((a, b, c, d, e, f) => {
       return [a, b, c, d, e, f];
@@ -128,7 +128,7 @@ test({
 });
 
 test({
-  name: "callsMultipleTimes",
+  name: "call multiple times",
   async fn(): Promise<void> {
     const f = parry((a, b, c, d, e, f) => {
       return [a, b, c, d, e, f];
@@ -147,7 +147,7 @@ test({
 });
 
 test({
-  name: "runsSyncFunction",
+  name: "run sync function",
   async fn(): Promise<void> {
     const p = parry((x) => x);
 
@@ -160,7 +160,7 @@ test({
 });
 
 test({
-  name: "runsAsyncFunction",
+  name: "run async function",
   async fn(): Promise<void> {
     const p = parry((x) => x);
 
@@ -178,7 +178,7 @@ test({
 });
 
 test({
-  name: "declaresValue",
+  name: "declare value",
   async fn(): Promise<void> {
     const p = parry((x) => x);
 
@@ -199,11 +199,11 @@ test({
 });
 
 test({
-  name: "useFunction",
+  name: "define function",
   async fn(): Promise<void> {
     const p = parry((x) => x);
 
-    p.use("add", (a: number, b: number): number => a + b);
+    p.define("add", (a: number, b: number): number => a + b);
 
     const r = await p.run(
       (async () => {

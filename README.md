@@ -6,7 +6,9 @@
 [![License](https://img.shields.io/github/license/denosaurs/parry)](https://github.com/denosaurs/parry/blob/master/LICENSE)
 
 ---
+
 > ⚠️ This project is a working project. Expect breaking changes.
+
 ---
 
 A simple way of running functions in their own Worker that works with
@@ -17,11 +19,11 @@ A simple way of running functions in their own Worker that works with
 The following function will run in it's own Worker, enabling threading and
 therefor not blocking the main event loop. This becomes very useful for
 parallelization of certain computations or just a way of running a function and
-not blocking the main event loop while it runs.
-It is required to use the `--allow-read` flag for it to work due to an external
-js file being loaded in as the worker. If you want the `Deno` object to be
-avalible in the worker the `--unstable` flag is required. Permissions inside the workers
-are inherited and imports need to be dynamic.
+not blocking the main event loop while it runs. It is required to use the
+`--allow-read` flag for it to work due to an external js file being loaded in as
+the worker. If you want the `Deno` object to be avalible in the worker the
+`--unstable` flag is required. Permissions inside the workers are inherited and
+imports need to be dynamic.
 
 ```ts
 import { parry } from "https://deno.land/x/parry/mod.ts";

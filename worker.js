@@ -1,14 +1,14 @@
-let f = () => {};
+let __func = () => {};
 
 onmessage = function (event) {
   const { type, id, data } = event.data;
   switch (type) {
     case "set":
-      f = new Function(`return ${data};`)();
+      __func = new Function(`return ${data};`)();
       break;
     case "call":
       Promise.resolve(data)
-        .then((v) => f.apply(null, v))
+        .then((v) => __func.apply(null, v))
         .then(
           (resolved) =>
             self.postMessage({
@@ -48,7 +48,7 @@ onmessage = function (event) {
     case "declare":
       self[data.ident] = data.value;
       break;
-    case "use":
+    case "define":
       self[data.ident] = new Function(`return ${data.func};`)();
       break;
     default:
