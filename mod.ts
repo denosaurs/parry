@@ -1,5 +1,3 @@
-import { dirname, join } from "https://deno.land/std@0.84.0/path/mod.ts";
-
 type AsyncFunction<S extends unknown[], T> = (...params: S) => Promise<T>;
 type MaybeAsyncFunction<S extends unknown[], T> = (
   ...params: S
