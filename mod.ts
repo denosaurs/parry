@@ -85,10 +85,7 @@ export const parry: Parry = <S extends unknown[], T extends unknown>(
     ];
   } = {};
 
-  const worker = new Worker(
-    join(dirname(import.meta.url), "worker.js"), // Allows the Worker to be run both locally and imported from an URL
-    { type: "module", deno },
-  );
+  const worker = new Worker(URL.createObjectURL(new Blob([`(${expose.toString()})()`])), { type: "module" });
 
   worker.onmessage = (event) => {
     const { type, id, data } = event.data; // All parry Worker messages use this object structure
@@ -226,5 +223,69 @@ parry.close = (): void => {
     func.close();
   }
 };
+
+function expose() {
+  let __func = () => {};
+  self.onmessage = (event) => {
+    const { type, id, data } = event.data;
+    switch (type) {
+      case "set":
+        __func = new Function(`return ${data};`)();
+        break;
+      case "call": {
+        Promise.resolve(data)
+          .then((v) => __func.apply(null, v))
+          .then(
+            (resolved) =>
+              self.postMessage({
+                type: "resolve",
+                id,
+                data: resolved,
+              }),
+            (rejected) =>
+              self.postMessage({
+                type: "reject",
+                id,
+                data: rejected,
+              }),
+          );
+        break;
+      }
+      case "run": {
+        const r = new Function(`return ${data.func};`)();
+        Promise.resolve(data.params)
+          .then((v) => r.apply(null, v))
+          .then(
+            (resolved) => {
+              self.postMessage({
+                type: "resolve",
+                id,
+                data: resolved,
+              });
+            },
+            (rejected) =>
+              self.postMessage({
+                type: "reject",
+                id,
+                data: rejected,
+              }),
+          );
+        break;
+      }
+      case "declare":
+        self[data.ident] = data.value;
+        break;
+      case "define":
+        self[data.ident] = new Function(`return ${data.func};`)();
+        break;
+      default:
+        self.postMessage({
+          type: "error",
+          data: "Unknown message type",
+        });
+        break;
+    }
+  };
+}
 
 export default parry;
